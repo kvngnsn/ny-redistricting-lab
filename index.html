@@ -31,14 +31,34 @@
       <div class="sidebar-footer"><span>Open code. Reproducible results.</span><button id="download-csv">Export district results</button></div>
     </aside>
     <section class="map-section" aria-label="Interactive district map">
-      <div class="map-toolbar"><div class="map-view-toggle" role="group" aria-label="Map coloring"><button data-mode="margin" class="active" aria-pressed="true">Vote margin</button><button data-mode="gap" aria-pressed="false">Target gap</button><button data-mode="district" aria-pressed="false">Districts</button><button data-mode="population" aria-pressed="false">Population</button></div><div class="map-options"><label><input type="checkbox" id="units" /> Voting units</label><button id="fit-map" aria-label="Fit map to New York">Fit state</button></div></div>
+      <div class="map-toolbar">
+        <div class="map-view-toggle" role="group" aria-label="Map coloring"><button data-mode="margin" aria-pressed="false">Vote margin</button><button data-mode="gap" class="active" aria-pressed="true">Target gap</button><button data-mode="district" aria-pressed="false">Districts</button><button data-mode="population" aria-pressed="false">Population</button></div>
+        <div class="map-options">
+          <label><input type="checkbox" id="units" /> Voting units</label>
+          <details id="color-settings" class="color-settings">
+            <summary><span class="color-preview" aria-hidden="true"></span> Colors</summary>
+            <div class="color-panel">
+              <div class="color-panel-heading"><strong>Make the map easier to read</strong><button id="close-colors" aria-label="Close color settings">✕</button></div>
+              <label for="color-palette">Color palette</label>
+              <select id="color-palette"><option value="accessible">Blue / orange</option><option value="classic">Blue / red</option></select>
+              <label for="color-scale">Color range</label>
+              <select id="color-scale" aria-describedby="color-scale-help"><option value="focused">Fit current view · more contrast</option><option value="fixed">Fixed across maps · full range</option></select>
+              <p id="color-scale-help" class="micro">A focused range makes smaller differences visible.</p>
+              <label for="color-borders">District borders</label>
+              <select id="color-borders"><option value="subtle">Subtle</option><option value="strong">Strong</option><option value="none">Hidden</option></select>
+              <div class="color-panel-footer"><span>Saved in this browser</span><button id="reset-colors">Reset colors</button></div>
+            </div>
+          </details>
+          <button id="fit-map" aria-label="Fit map to New York">Fit state</button>
+        </div>
+      </div>
       <div class="map-canvas-wrap"><div id="map" role="img" aria-label="New York district map. Use the district list for keyboard-accessible details."></div>
         <div id="map-loading" class="map-loading"><div class="loader"></div><strong>Loading New York</strong><span>Geography and published results</span></div>
         <div class="map-caption"><span id="map-plan-name">New York</span><strong id="map-election-name">Election explorer</strong><span id="swing-caption" hidden>Scenario shift applied</span></div>
-        <div id="legend" class="legend"><div class="legend-ramp"></div><div><span>R +40</span><span>Even</span><span>D +40</span></div></div>
         <div id="unit-tip" class="unit-tip" hidden></div>
         <div class="map-bottom-note">Boundaries include Census water areas. <button data-doc="methodology">Read the definitions</button></div>
       </div>
+      <div id="legend" class="legend" aria-label="Map color legend" aria-live="polite"></div>
       <div class="verification-strip"><span class="verification-dot" id="validation-dot"></span><span id="validation-line">Loading population and connectivity checks</span><button data-doc="validation">View audit</button></div>
     </section>
     <aside class="inspector" aria-label="Selected district details">

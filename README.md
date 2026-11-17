@@ -20,6 +20,8 @@ All three experimental maps have **23 districts at 776,971 residents** and **3 a
 - Switch among three experiments and the official reference.
 - Compare **13 statewide contests spanning 2008–2024**.
 - Click districts for population, margins and election history.
+- Open **Colors** above the map for blue/orange or blue/red palettes, a focused or fixed color range, and subtle/strong/hidden borders. Preferences stay in your browser. **Target gap** opens by default: orange means below the statewide margin; blue means above it. Both can still be Democratic leads.
+- Read the numeric legend when comparing views: the focused scale adapts to the current data; the fixed scale keeps the same values across plans and elections. Voting units always use a fixed scale without swing.
 - Inspect **14,191** common historical voting units; compare gaps from statewide and explore a uniform vote-share swing.
 - Download district results, map geometry and all **288,819** Census-block assignments.
 - Open the public source credits, methodology and machine-readable validation.

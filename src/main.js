@@ -2,6 +2,7 @@ import * as maplibregl from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import './style.css';
 import { voteShare, margin, seatCounts, marginLabel, robustMargin, csvForPlan, clamp, marginFit } from './model.js';
+import { palettes, defaults, colorSettings, colorLimit, colorExpression } from './colors.js';
 
 const $ = id => document.getElementById(id);
 maplibregl.setWorkerUrl(workerUrl);
@@ -12,7 +13,9 @@ const esc = value => String(value).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<'
 const signed = (n, digits = 1) => `${n > 0 ? '+' : ''}${n.toFixed(digits)}`;
 const palette = ['#2c6694','#cc7d47','#608d76','#9a7fa3','#bc9a48','#5f93ae','#bd696f','#7e8d4e','#5673ad','#b77b99','#53988f','#9e805f','#798ac2','#b08b4c','#6e9b69','#b06d4e','#739898','#b47682','#788758','#7f7a9b','#a78a76','#6f9fb8','#bb835e','#839471','#9c7895','#4a7d90'];
 let hoverPopup;
-let data, map, currentPlan, electionIndex = 12, selected = null, swing = 0, mode = 'margin', hovered = null, ready = false, unitsLoaded = false, unitsLoading = false, planRequest = 0;
+let data, map, currentPlan, electionIndex = 12, selected = null, swing = 0, mode = 'gap', hovered = null, ready = false, unitsLoaded = false, unitsLoading = false, planRequest = 0;
+let colors = { ...defaults };
+try { colors = colorSettings(JSON.parse(localStorage.getItem('district-lab-colors'))); } catch { /* Storage is optional. */ }
 const geometries = new Map();
 const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -26,7 +29,7 @@ function toast(text) {
   setTimeout(() => { $('notice').hidden = true; }, 5000);
 }
 function currentDistrict() { return currentPlan.districts.find(d => d.id === selected); }
-function marginColor(m) { return m === null ? '#a9b5bf' : m >= 0 ? '#285faa' : '#b94e3a'; }
+function marginColor(m) { return m === null ? '#617284' : m === 0 ? '#526375' : m > 0 ? palettes[colors.palette].positive : palettes[colors.palette].negative; }
 function historyRow(label, value, index, seatMode = false) {
   const left = value === null ? 50 : value >= 0 ? 50 : 50 + Math.max(value, -100) / 2;
   const width = value === null ? 0 : Math.min(50, Math.abs(value) / 2);
@@ -40,7 +43,7 @@ function renderList() {
   else districts.sort((a,b) => a.id-b.id);
   $('district-list').innerHTML = districts.map(d => {
     const share = voteShare(d.votes[electionIndex], swing), m = margin(d.votes[electionIndex], swing);
-    return `<button class="district-row ${selected === d.id ? 'selected' : ''}" data-district="${d.id}" aria-pressed="${selected === d.id}" aria-label="District ${d.id}, ${marginLabel(m)}, population ${number.format(d.population)}"><span class="district-id">NY ${String(d.id).padStart(2,'0')}</span><span class="district-track"><span style="width:${(share ?? 0)*100}%;background:${marginColor(m)}"></span></span><span class="district-margin" style="color:${marginColor(m)}">${marginLabel(m)}</span></button>`;
+    return `<button class="district-row ${selected === d.id ? 'selected' : ''} ${mode==='district'?'show-district-color':''}" style="--district-color:${palette[(d.id-1)%palette.length]}" data-district="${d.id}" aria-pressed="${selected === d.id}" aria-label="District ${d.id}, ${marginLabel(m)}, population ${number.format(d.population)}"><span class="district-id">NY ${String(d.id).padStart(2,'0')}</span><span class="district-track"><span style="width:${(share ?? 0)*100}%;background:${marginColor(m)}"></span></span><span class="district-margin" style="color:${marginColor(m)}">${marginLabel(m)}</span></button>`;
   }).join('');
   const counts = seatCounts(currentPlan.districts, electionIndex, swing);
   $('dem-seats').textContent = counts.dem; $('rep-seats').textContent = counts.rep; $('tie-seats').textContent = counts.tie;
@@ -58,17 +61,61 @@ function renderInspector() {
     const counts = seatCounts(currentPlan.districts,electionIndex,swing);
     const robust = currentPlan.districts.filter(d => robustMargin(d)>0).length;
     const weakest = Math.min(...currentPlan.districts.map(d => margin(d.votes[electionIndex],swing) ?? 0));
-    $('inspector-content').innerHTML = `<h2>${currentPlan.id === 'reference' ? 'Adopted reference' : 'Search result'}</h2><span class="result-label ${counts.dem<26 ? 'warn':''}">${counts.dem===26 ? '26 Democratic leads in this scenario' : '26–0 target not reached in this scenario'}</span><p>${esc(currentPlan.description)}</p><div class="stat-lines"><div class="stat-line"><span>Largest gap from statewide</span><strong>${fit.maxGap.toFixed(2)} pp</strong></div><div class="stat-line"><span>Strongest district</span><strong>${marginLabel(fit.max)}</strong></div><div class="stat-line"><span>Weakest district</span><strong style="color:${marginColor(weakest)}">${marginLabel(weakest)}</strong></div><div class="stat-line"><span>D leads in every source election</span><strong>${robust} of 26 districts</strong></div><div class="stat-line"><span>Statewide two-party margin</span><strong>${marginLabel(margin(e.source_totals,swing))}</strong></div><div class="stat-line"><span>Largest population gap</span><strong>${number.format(currentPlan.validation.population_range)} ${currentPlan.validation.population_range===1?'person':'people'}</strong></div><div class="stat-line"><span>Connected districts</span><strong>${currentPlan.validation.connected_districts} / 26*</strong></div></div><h3>Democratic leads by election</h3>${data.elections.map((e,i) => {const seats=seatCounts(currentPlan.districts,i).dem;return `<div class="history-row"><button data-election="${i}">${esc(e.label.replace('attorney general','AG'))}</button><div class="district-track"><span style="width:${seats/26*100}%;background:#547fb5"></span></div><span class="history-value">${seats} / 26</span></div>`}).join('')}<p class="micro">*Two unpopulated island blocks retain their official assignment and are disclosed exceptions.</p><p class="analysis-note">${currentPlan.id!=='reference' ? 'This is a finite heuristic search, not a proof of the best possible map. Population and connectivity are checked independently after search.' : 'The reference uses the official February 2024 block assignments. These are modeled election results on that map, not the results of the 2024 House contests.'}</p><div class="download-links"><a href="${base}data/${currentPlan.file}" download>Download displayed district GeoJSON</a><a href="${base}data/${currentPlan.assignments}" download>Download full block assignments</a></div><p class="micro" style="margin-top:12px">Data downloads retain source-specific licenses. <button class="nav-button" data-doc="sources">Read credits and terms</button></p>`;
+    $('inspector-content').innerHTML = `<h2>${currentPlan.id === 'reference' ? 'Adopted reference' : 'Search result'}</h2><span class="result-label ${counts.dem<26 ? 'warn':''}">${counts.dem===26 ? '26 Democratic leads in this scenario' : '26–0 target not reached in this scenario'}</span><p>${esc(currentPlan.description)}</p><div class="stat-lines"><div class="stat-line"><span>Largest gap from statewide</span><strong>${fit.maxGap.toFixed(2)} pp</strong></div><div class="stat-line"><span>Strongest district</span><strong>${marginLabel(fit.max)}</strong></div><div class="stat-line"><span>Weakest district</span><strong style="color:${marginColor(weakest)}">${marginLabel(weakest)}</strong></div><div class="stat-line"><span>D leads in every source election</span><strong>${robust} of 26 districts</strong></div><div class="stat-line"><span>Statewide two-party margin</span><strong>${marginLabel(margin(e.source_totals,swing))}</strong></div><div class="stat-line"><span>Largest population gap</span><strong>${number.format(currentPlan.validation.population_range)} ${currentPlan.validation.population_range===1?'person':'people'}</strong></div><div class="stat-line"><span>Connected districts</span><strong>${currentPlan.validation.connected_districts} / 26*</strong></div></div><h3>Democratic leads by election</h3>${data.elections.map((e,i) => {const seats=seatCounts(currentPlan.districts,i).dem;return `<div class="history-row"><button data-election="${i}">${esc(e.label.replace('attorney general','AG'))}</button><div class="district-track"><span style="width:${seats/26*100}%;background:${marginColor(1)}"></span></div><span class="history-value">${seats} / 26</span></div>`}).join('')}<p class="micro">*Two unpopulated island blocks retain their official assignment and are disclosed exceptions.</p><p class="analysis-note">${currentPlan.id!=='reference' ? 'This is a finite heuristic search, not a proof of the best possible map. Population and connectivity are checked independently after search.' : 'The reference uses the official February 2024 block assignments. These are modeled election results on that map, not the results of the 2024 House contests.'}</p><div class="download-links"><a href="${base}data/${currentPlan.file}" download>Download displayed district GeoJSON</a><a href="${base}data/${currentPlan.assignments}" download>Download full block assignments</a></div><p class="micro" style="margin-top:12px">Data downloads retain source-specific licenses. <button class="nav-button" data-doc="sources">Read credits and terms</button></p>`;
   }
+}
+function currentColorLimit() {
+  const target = margin(data.elections[electionIndex].source_totals,swing);
+  const values = currentPlan.districts.map(d => mode === 'population' ? d.population-data.population/26 :
+    mode === 'gap' ? margin(d.votes[electionIndex],swing)-target : margin(d.votes[electionIndex],swing));
+  return colorLimit(mode,colors.scale,values,$('units').checked);
 }
 function expression() {
   if (mode === 'district') return ['match',['get','district'],...currentPlan.districts.flatMap(d=>[d.id,palette[(d.id-1)%palette.length]]),'#c6d2dc'];
-  if (mode === 'gap') return ['interpolate',['linear'],['get','targetGap'],-15,'#a5682c',0,'#f5f5ef',15,'#316e89'];
-  if (mode === 'population') {
-    const max=Math.max(...currentPlan.districts.map(d=>Math.abs(d.population-data.population/26)),1);
-    return ['interpolate',['linear'],['get','deviation'],-max,'#a97b39',0,'#f1f3f4',max,'#316e89'];
+  return colorExpression(mode === 'gap' ? 'targetGap' : mode === 'population' ? 'deviation' : 'margin',currentColorLimit(),colors.palette);
+}
+function syncColorControls() {
+  const p = palettes[colors.palette], units = $('units').checked;
+  document.documentElement.style.setProperty('--blue',p.positive);
+  document.documentElement.style.setProperty('--red',p.negative);
+  document.documentElement.style.setProperty('--color-preview',`linear-gradient(90deg,${p.stops.join(',')})`);
+  $('color-palette').value = colors.palette; $('color-scale').value = colors.scale; $('color-borders').value = colors.borders;
+  $('color-palette').disabled = mode === 'district';
+  $('color-scale').disabled = mode === 'district' || mode === 'population' || units;
+  $('color-scale-help').textContent = mode === 'district' ? 'Colors identify districts, with no ranking. Select one to see its number.' :
+    mode === 'population' ? 'The scale shows people above or below ideal, even when the difference is less than one.' :
+    units ? 'Voting units use a fixed R +100 to D +100 scale. Swing is not applied.' :
+    colors.scale === 'focused' ? 'More contrast for this view. The range adjusts with the plan, election and swing; check the legend.' :
+    'The same colors mean the same values across maps: ±100 pp for margins, ±200 pp for target gaps.';
+  document.querySelectorAll('[data-mode]').forEach(b=>{b.classList.toggle('active',b.dataset.mode===mode);b.setAttribute('aria-pressed',String(b.dataset.mode===mode));});
+}
+function renderLegend() {
+  syncColorControls();
+  if (mode === 'district') {
+    $('legend').innerHTML=`<strong class="legend-title">District identities</strong><div class="district-color-key">${palette.slice(0,8).map(c=>`<i style="background:${c}"></i>`).join('')}</div><p class="legend-note">Colors separate districts. Select a shape or district row for its number.</p>`;
+    return;
   }
-  return ['interpolate',['linear'],['get','margin'],-40,'#a73b2c',-15,'#da8b79',0,'#f4f4f0',15,'#97b7de',40,'#285faa'];
+  const limit=currentColorLimit(), units=$('units').checked;
+  const target=margin(data.elections[electionIndex].source_totals,swing);
+  let title, labels, ends, note;
+  if (mode === 'gap') {
+    title=`Gap from statewide ${marginLabel(target)}`;
+    labels=[`−${limit} pp`,'Matches',`+${limit} pp`]; ends=['Below target','Above target'];
+    note='Below target can still mean a Democratic lead.';
+  } else if (mode === 'population') {
+    title='Population difference'; labels=[`−${limit}`,'Ideal',`+${limit}`]; ends=['Fewer people','More people'];
+    note=`People from ideal (${number.format(data.population/26)}). The total gap is ${currentPlan.validation.population_range} ${currentPlan.validation.population_range===1?'person':'people'}.`;
+  } else {
+    title=units?'Voting-unit margin':'District vote margin'; labels=[`R +${limit}`,'Tied',`D +${limit}`]; ends=['Republican lead','Democratic lead'];
+    note=units?'Original election estimates. Swing is not applied; gray means no two-party votes.':'Two-party lead in percentage points, not a win probability.';
+  }
+  const scaleNote=mode==='population'?'Exact population':units||colors.scale==='fixed'?'Fixed scale':'Scale fits current view';
+  $('legend').innerHTML=`<strong class="legend-title">${esc(title)}</strong><div class="legend-ends"><span>${ends[0]}</span><span>${ends[1]}</span></div><div class="legend-ramp" style="background:linear-gradient(90deg,${palettes[colors.palette].stops.join(',')})"></div><div class="legend-labels">${labels.map(l=>`<span>${l}</span>`).join('')}</div><p class="legend-note">${esc(note)}</p><span class="legend-scale">${scaleNote}</span>`;
+}
+function updateColors() {
+  colors=colorSettings({palette:$('color-palette').value,scale:$('color-scale').value,borders:$('color-borders').value});
+  try { localStorage.setItem('district-lab-colors',JSON.stringify(colors)); } catch { /* Still works without storage. */ }
+  if(data)render();else syncColorControls();
 }
 function mapData(geo) {
   return { ...geo,features:geo.features.map(f=>{
@@ -77,15 +124,16 @@ function mapData(geo) {
   })};
 }
 function updateMap() {
+  renderLegend();
   if (!ready || !geometries.has(currentPlan.id)) return;
   map.getSource('districts').setData(mapData(geometries.get(currentPlan.id)));
   map.setPaintProperty('district-fill','fill-color',expression());
   map.setFilter('district-selected',['==',['get','district'],selected ?? -1]);
-  $('legend').hidden=mode==='district';
-  if(mode==='gap') $('legend').innerHTML='<div class="legend-ramp" style="background:linear-gradient(90deg,#a5682c,#f5f5ef,#316e89)"></div><div><span>−15 pp</span><span>Statewide</span><span>+15 pp</span></div>';
-  else if(mode==='population') $('legend').innerHTML='<div class="legend-ramp" style="background:linear-gradient(90deg,#a97b39,#f1f3f4,#316e89)"></div><div><span>Below ideal</span><span>Ideal</span><span>Above ideal</span></div>';
-  else $('legend').innerHTML='<div class="legend-ramp"></div><div><span>R +40</span><span>Even</span><span>D +40</span></div>';
-  if(unitsLoaded) map.setPaintProperty('units-fill','fill-color',['case',['==',['get',`m${electionIndex}`],null],'#a9b5bf',['interpolate',['linear'],['coalesce',['get',`m${electionIndex}`],0],-40,'#a73b2c',-15,'#da8b79',0,'#f4f4f0',15,'#97b7de',40,'#285faa']]);
+  map.setPaintProperty('district-outline','line-color',colors.borders==='strong'?'#243849':'#fff');
+  map.setPaintProperty('district-outline','line-width',['interpolate',['linear'],['zoom'],5,colors.borders==='strong'?.85:.3,10,colors.borders==='strong'?1.8:.8]);
+  map.setPaintProperty('district-outline','line-opacity',colors.borders==='none'?0:colors.borders==='strong'?.85:.5);
+  map.setPaintProperty('district-fill','fill-antialias',colors.borders!=='none');
+  if(unitsLoaded) map.setPaintProperty('units-fill','fill-color',colorExpression(`m${electionIndex}`,100,colors.palette));
 }
 function render() {
   renderList();renderInspector();updateMap();
@@ -97,6 +145,7 @@ function render() {
   $('validation-dot').className=`verification-dot ${v.population_range<=1 && v.connected_districts===26?'pass':'warn'}`;
   $('validation-line').textContent=`Population gap: ${number.format(v.population_range)} ${v.population_range===1?'person':'people'}. ${v.connected_districts}/26 connected; 2 island exceptions.`;
   const hash=new URLSearchParams({plan:currentPlan.id,election:data.elections[electionIndex].id});
+  hash.set('view',mode);
   if(selected)hash.set('district',selected);if(swing)hash.set('swing',swing);
   history.replaceState(null,'',`#${hash}`);
 }
@@ -121,7 +170,8 @@ function fitState(){if(ready)map.fitBounds([[-79.80,40.43],[-71.72,45.05]],{padd
 
 async function toggleUnits() {
   if(!ready)return;
-  if($('units').checked&&mode!=='margin'){mode='margin';document.querySelectorAll('[data-mode]').forEach(b=>{b.classList.toggle('active',b.dataset.mode===mode);b.setAttribute('aria-pressed',String(b.dataset.mode===mode));});updateMap();}
+  if($('units').checked)mode='margin';
+  render();
   if($('units').checked && !unitsLoaded && !unitsLoading) {
     unitsLoading=true;toast('Loading 14,191 historical voting units…');
     try {
@@ -140,6 +190,7 @@ async function toggleUnits() {
   }
   if(unitsLoaded){for(const layer of ['units-fill','units-outline'])map.setLayoutProperty(layer,'visibility',$('units').checked?'visible':'none');}
   if(!$('units').checked)$('unit-tip').hidden=true;
+  updateMap();
 }
 
 function openDoc(which) {
@@ -159,6 +210,7 @@ async function init() {
   try {
     data=await json('data/summary.json');
     const params=new URLSearchParams(location.hash.slice(1));
+    if(['margin','gap','district','population'].includes(params.get('view')))mode=params.get('view');
     electionIndex=data.elections.findIndex(e=>e.id===(params.get('election')??'24_PRES'));if(electionIndex<0)electionIndex=data.elections.length-1;
     swing=clamp(Number(params.get('swing'))||0,-10,10);$('swing').value=swing;$('swing-output').textContent=`${signed(swing)} pp`;
     $('plan').innerHTML=data.plans.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
@@ -172,11 +224,11 @@ async function init() {
     map.addControl(new maplibregl.AttributionControl({compact:true,customAttribution:['U.S. Census Bureau','NY LATFOR','<a href="https://github.com/dra2020/vtd_data" target="_blank" rel="noopener">DRA & contributors</a>','<a href="https://github.com/nytimes/presidential-precinct-map-2024" target="_blank" rel="noopener">2024: The New York Times / B. Rosenblatt</a>']}),'bottom-right');
     map.on('load',()=>{
       map.addSource('districts',{type:'geojson',data:mapData(geometries.get(currentPlan.id)),promoteId:'district'});
-      map.addLayer({id:'district-fill',type:'fill',source:'districts',paint:{'fill-color':expression(),'fill-opacity':.9}});
+      map.addLayer({id:'district-fill',type:'fill',source:'districts',paint:{'fill-color':expression(),'fill-opacity':1}});
       map.addLayer({id:'district-outline',type:'line',source:'districts',paint:{'line-color':'#fff','line-width':['interpolate',['linear'],['zoom'],5,.7,10,1.6],'line-opacity':.95}});
       map.addLayer({id:'district-selected',type:'line',source:'districts',filter:['==',['get','district'],-1],paint:{'line-color':'#dfaa3c','line-width':3}});
       map.on('click','district-fill',event=>{if(event.features?.length&&!$('units').checked)selectDistrict(event.features[0].properties.district);});
-      map.on('mousemove','district-fill',event=>{map.getCanvas().style.cursor='pointer';if(event.features?.length&&!$('units').checked){hovered=event.features[0].properties.district;const d=currentPlan.districts.find(d=>d.id===hovered);hoverPopup??=new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:12});hoverPopup.setLngLat(event.lngLat).setText(`NY ${hovered} · ${marginLabel(margin(d.votes[electionIndex],swing))} · ${number.format(d.population)} people`).addTo(map);}});
+      map.on('mousemove','district-fill',event=>{map.getCanvas().style.cursor='pointer';if(event.features?.length&&!$('units').checked){hovered=event.features[0].properties.district;const d=currentPlan.districts.find(d=>d.id===hovered);hoverPopup??=new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:12});const m=margin(d.votes[electionIndex],swing);const detail=mode==='gap'?`${signed(m-margin(data.elections[electionIndex].source_totals,swing),2)} pp from statewide`:mode==='population'?`${signed(d.population-data.population/26,2)} people from ideal`:`${number.format(d.population)} people`;hoverPopup.setLngLat(event.lngLat).setText(`NY ${hovered} · ${marginLabel(m)} · ${detail}`).addTo(map);}});
       map.on('mouseleave','district-fill',()=>{map.getCanvas().style.cursor='';hovered=null;hoverPopup?.remove();});
       ready=true;fitState();updateMap();$('map-loading').hidden=true;
     });
@@ -205,7 +257,13 @@ document.addEventListener('click',event=>{
   const doc=event.target.closest('[data-doc]');if(doc&&data)openDoc(doc.dataset.doc);
   const district=event.target.closest('[data-district]');if(district)selectDistrict(Number(district.dataset.district),true);
   const election=event.target.closest('[data-election]');if(election){electionIndex=Number(election.dataset.election);$('election').value=electionIndex;render();}
-  const modeButton=event.target.closest('[data-mode]');if(modeButton){mode=modeButton.dataset.mode;if(mode!=='margin'&&$('units').checked){$('units').checked=false;toggleUnits();}document.querySelectorAll('[data-mode]').forEach(b=>{b.classList.toggle('active',b===modeButton);b.setAttribute('aria-pressed',String(b===modeButton));});updateMap();}
+  const modeButton=event.target.closest('[data-mode]');if(modeButton){mode=modeButton.dataset.mode;if(mode!=='margin'&&$('units').checked){$('units').checked=false;toggleUnits();}if(data)render();}
   if(event.target.id==='close-unit-tip')$('unit-tip').hidden=true;
+  if(!event.target.closest('#color-settings'))$('color-settings').open=false;
 });
+for(const id of ['color-palette','color-scale','color-borders'])$(id).addEventListener('change',updateColors);
+$('close-colors').addEventListener('click',()=>{$('color-settings').open=false;$('color-settings').querySelector('summary').focus();});
+$('reset-colors').addEventListener('click',()=>{colors={...defaults};syncColorControls();updateColors();});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&$('color-settings').open){$('color-settings').open=false;$('color-settings').querySelector('summary').focus();}});
+syncColorControls();
 init();
