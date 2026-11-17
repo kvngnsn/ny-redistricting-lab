@@ -1,0 +1,7 @@
+*.npz binary
+*.npy binary
+*.gz binary
+*.geojson -diff
+# Upstream notices are preserved verbatim, including their whitespace.
+docs/data-licenses/** -whitespace
+public/notices/** -whitespace

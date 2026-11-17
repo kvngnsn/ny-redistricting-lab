@@ -1,0 +1,10 @@
+# Reproduction environment: Python 3.9–3.12 (tested 3.9), Node 24 for frontend.
+numpy==2.0.2
+scipy==1.13.1
+numba==0.60.0
+llvmlite==0.43.0
+pandas==2.3.3
+geopandas==1.0.1
+pyogrio==0.11.1
+pyproj==3.6.1
+shapely==2.0.7

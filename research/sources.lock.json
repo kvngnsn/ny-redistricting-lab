@@ -1,0 +1,38 @@
+{
+  "blocks.zip": {
+    "file": "blocks.zip",
+    "url": "https://www2.census.gov/geo/tiger/TIGER2020/TABBLOCK20/tl_2020_36_tabblock20.zip",
+    "bytes": 325849613,
+    "sha256": "b8fa7fac0cad83c378778fb07f1d2487e27eedb1a5d29e5c59cda70155c3de93"
+  },
+  "baseline.dbf": {
+    "file": "baseline.dbf",
+    "url": "https://latfor.state.ny.us/maps/2024_Congress/CON24_Feb_28_2024.dbf",
+    "bytes": 5198840,
+    "sha256": "6ee02541114f4e8fbd72571c9486878d35d04816668b26051490c6aa571f68a0"
+  },
+  "vtd.zip": {
+    "file": "vtd.zip",
+    "url": "https://www2.census.gov/geo/tiger/TIGER2020PL/STATE/36_NEW_YORK/36/tl_2020_36_vtd20.zip",
+    "bytes": 16642299,
+    "sha256": "7f8c1e456d69e670944168354a6a4ccce5e1f202c4457f69e919640b40f56532"
+  },
+  "historical-v05.zip": {
+    "file": "historical-v05.zip",
+    "url": "https://raw.githubusercontent.com/dra2020/vtd_data/master/2020_VTD/NY/Election_Data_NY.v05.zip",
+    "bytes": 1053758,
+    "sha256": "ab18e6970eea1f7d227632f42da849dcac841ba69373a62676c5aa23d5b6b215"
+  },
+  "nyt-2024-ny.geojson.gz": {
+    "file": "nyt-2024-ny.geojson.gz",
+    "url": "https://int.nyt.com/newsgraphics/elections/map-data/2024/national/NY-precincts-with-results.geojson.gz",
+    "bytes": 40086874,
+    "sha256": "1b653891e308cb325c419e3627b4841544506c7a499f13edd4f7959f5ba1ab53"
+  },
+  "block-vtd-crosswalk.zip": {
+    "file": "block-vtd-crosswalk.zip",
+    "url": "https://www2.census.gov/geo/docs/maps-data/data/baf2020/BlockAssign_ST36_NY.zip",
+    "bytes": 7271751,
+    "sha256": "7cf9a890beb47baca04bfa35c74db9300e1044c8a99b2cff559ade8fc1a89236"
+  }
+}
