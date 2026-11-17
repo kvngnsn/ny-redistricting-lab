@@ -1,0 +1,1 @@
+{"name":"equal-polish","init":"equal-polish-start.npy","rounds":120,"attempts":1000,"flips":300000,"seed":171000,"power":5000.0,"blocks":false,"graph_prefix":"fine","temperature":0.0002,"population_weight":400.0,"slack":0.02,"end_weight":1500.0,"end_slack":0.005,"zero_vote_skip":0.99}

@@ -84,3 +84,20 @@ PREVIEW_URL=http://127.0.0.1:4186 node tests/browser.mjs
 ```
 
 The isolated Chromium test exercises desktop/mobile layouts, selection, election and plan changes, population coloring, source overlays, swing, credits and audit dialogs. Screenshots go to ignored `qa/`. No existing browser profile is read.
+
+## Statewide-margin experiment
+
+The replay and offline validator also cover the `statewide` plan. [Equalization methodology](EQUALIZATION.md) explains its search and the saved stage inputs in `research/equalization/`. To produce a new experiment from a saved fine-graph start:
+
+```sh
+.venv/bin/python scripts/replay.py
+cp research/equalization/fine.npz .cache/fine.npz
+cp research/equalization/fine-graph.npz .cache/fine-graph.npz
+# Replay the final retained stage exactly from its saved start:
+.venv/bin/python scripts/reproduce_equalization.py --stage equal-polish
+# Or configure a new experiment:
+.venv/bin/python scripts/equalize.py --help
+.venv/bin/python scripts/equalize_pool.py --help
+```
+
+All configuration values, including the originally scheduled round count, matter for replaying an intermediate checkpoint. To reproduce only the exact published assignment, use `replay.py`; no new optimization is necessary.

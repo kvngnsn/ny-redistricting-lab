@@ -60,3 +60,7 @@ District display boundaries are unions of assigned source blocks, simplified at 
 The slider adds the same percentage-point shift to Democratic **two-party vote share** in every district, clipped to 0–100%. A one-point share shift changes margin by two points. It does not model turnout, incumbency or candidate quality. Historical bars and exported raw counts do not change with the slider.
 
 The experiment imposes only its disclosed population and contiguity constraints. It does not optimize compactness or preserve municipalities, counties or communities of interest, and it does not evaluate the full set of legal requirements for adopting a congressional map.
+
+## Statewide-margin extension
+
+A fourth plan directly targets the statewide 2024 margin in every district, penalizing deviations both above and below it. [Its objective, search stages, exact-equality arithmetic and remaining limitations](EQUALIZATION.md) are documented separately. The original two experiments and adopted reference remain available for comparison.

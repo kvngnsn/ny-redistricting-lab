@@ -14,3 +14,5 @@
 - `release-hashes.json`: fingerprints for the released model and site data. Refresh intentionally with `scripts/seal_release.py` after reviewing regenerated artifacts.
 
 Logs document finite optimization runs. They are not samples from a uniform distribution of valid maps, and they do not prove that no better map exists. No individual voter records are included.
+
+The `equalization/` subfolder records the added statewide-margin experiment: selected stage starts, configurations, logs, the refined graph, finishing audit and final numerical comparison. See [the equalization method](../docs/EQUALIZATION.md). Its complete assignment also has a pre-balance checkpoint and exact finishing patch in `checkpoints/`.

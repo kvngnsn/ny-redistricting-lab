@@ -23,13 +23,19 @@ def main():
             assert all(d[k]==published[k] for k in d),f"District mismatch {plan['id']} {d['id']}"
         if plan['id']!='reference':
             assert actual['constraints_pass']
-            source='sweep' if plan['id']=='candidate' else 'stress'
+            source='sweep' if plan['id']=='candidate' else plan['id']
             replay=np.load(ROOT/f'research/checkpoints/{source}-before-balance.npy')
             with gzip.open(ROOT/f"research/checkpoints/{plan['id']}-finish.csv.gz",'rt') as f:
                 for row in csv.DictReader(f):replay[int(row['block_index'])]=int(row['district_zero_based'])
             assert np.array_equal(replay,assignment),'Checkpoint replay mismatch'
         else:assert np.array_equal(assignment,inputs['baseline'])
-        if plan['id']=='candidate':assert all(d['votes'][-1][0]>d['votes'][-1][1] for d in actual['districts'])
+        if plan['id'] in ['candidate','statewide']:assert all(d['votes'][-1][0]>d['votes'][-1][1] for d in actual['districts'])
+        if plan['id']=='statewide':
+            report=json.loads((ROOT/'research/equalization/result.json').read_text())
+            counts=np.array([d['votes'][-1] for d in actual['districts']]);margins=(counts[:,0]-counts[:,1])/counts[:,:2].sum(axis=1)
+            np.testing.assert_allclose(margins,report['final']['margins'],rtol=0,atol=1e-12)
+            target=(counts[:,0].sum()-counts[:,1].sum())/counts[:,:2].sum()
+            assert abs(np.max(np.abs(margins-target))*100-report['final']['maximum_error_pp'])<1e-10
         print(plan['id'],':',actual['blocks'],'blocks;',actual['population_range'],'person range;',actual['connected_districts'],'connected; all election totals conserved')
     manifest=json.loads((ROOT/'research/release-hashes.json').read_text())
     for name,expected in manifest.items():

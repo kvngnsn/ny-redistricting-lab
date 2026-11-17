@@ -16,7 +16,7 @@
   </header>
   <main class="workspace">
     <aside class="controls-panel" id="controls" aria-label="Map controls and districts">
-      <div class="panel-intro"><h1>26 districts.<br> One experiment.</h1><p>A Democratic sweep is the search target. The numbers below show what the search actually found.</p></div>
+      <div class="panel-intro"><h1>26 districts.<br> One statewide target.</h1><p>Target the statewide vote in every district. Compare the search with earlier maps and elections.</p></div>
       <div class="control-fields">
         <label for="plan">District plan</label><select id="plan" disabled></select>
         <label for="election">Election</label><select id="election" disabled></select>
@@ -26,12 +26,12 @@
         <p id="swing-help" class="micro">A uniform two-party vote-share shift, not a forecast.</p>
       </div>
       <div class="seat-summary" aria-live="polite"><div><strong id="dem-seats">—</strong><span>Democratic</span></div><div><strong id="rep-seats">—</strong><span>Republican</span></div><div><strong id="tie-seats">—</strong><span>Tied / no votes</span></div></div>
-      <div class="list-heading"><h2>Districts</h2><select id="sort" aria-label="Sort districts"><option value="margin">Weakest D margin first</option><option value="id">District number</option><option value="population">Population difference</option></select></div>
+      <div class="list-heading"><h2>Districts</h2><select id="sort" aria-label="Sort districts"><option value="margin">Weakest D margin first</option><option value="target">Farthest from statewide</option><option value="id">District number</option><option value="population">Population difference</option></select></div>
       <div id="district-list" class="district-list" aria-label="Select a district"><p class="loading-copy">Loading verified results…</p></div>
       <div class="sidebar-footer"><span>Open code. Reproducible results.</span><button id="download-csv">Export district results</button></div>
     </aside>
     <section class="map-section" aria-label="Interactive district map">
-      <div class="map-toolbar"><div class="map-view-toggle" role="group" aria-label="Map coloring"><button data-mode="margin" class="active" aria-pressed="true">Vote margin</button><button data-mode="district" aria-pressed="false">Districts</button><button data-mode="population" aria-pressed="false">Population</button></div><div class="map-options"><label><input type="checkbox" id="units" /> Voting units</label><button id="fit-map" aria-label="Fit map to New York">Fit state</button></div></div>
+      <div class="map-toolbar"><div class="map-view-toggle" role="group" aria-label="Map coloring"><button data-mode="margin" class="active" aria-pressed="true">Vote margin</button><button data-mode="gap" aria-pressed="false">Target gap</button><button data-mode="district" aria-pressed="false">Districts</button><button data-mode="population" aria-pressed="false">Population</button></div><div class="map-options"><label><input type="checkbox" id="units" /> Voting units</label><button id="fit-map" aria-label="Fit map to New York">Fit state</button></div></div>
       <div class="map-canvas-wrap"><div id="map" role="img" aria-label="New York district map. Use the district list for keyboard-accessible details."></div>
         <div id="map-loading" class="map-loading"><div class="loader"></div><strong>Loading New York</strong><span>Geography and published results</span></div>
         <div class="map-caption"><span id="map-plan-name">New York</span><strong id="map-election-name">Election explorer</strong><span id="swing-caption" hidden>Scenario shift applied</span></div>

@@ -39,8 +39,9 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--require-constraints',action='store_true');args=p.parse_args()
     b=np.load(CACHE/'blocks.npz');v=np.load(CACHE/'votes.npy');g=load_npz(CACHE/'graph.npz')
     results={name:validate(a,b,v,g) for name,a in [('reference',b['baseline']),('candidate',np.load(CACHE/'candidate.npy')),('stress',np.load(CACHE/'stress.npy'))]}
+    if (CACHE/'statewide.npy').exists():results['statewide']=validate(np.load(CACHE/'statewide.npy'),b,v,g)
     write_json(PUBLIC/'validation.json',results)
     for name,r in results.items():print(name,json.dumps({k:v for k,v in r.items() if k!='districts'}))
-    if args.require_constraints and not all(results[p]['constraints_pass'] for p in ['candidate','stress']):raise SystemExit('Candidate failed hard constraints')
+    if args.require_constraints and not all(results[p]['constraints_pass'] for p in results if p!='reference'):raise SystemExit('Candidate failed hard constraints')
 
 if __name__=='__main__':main()

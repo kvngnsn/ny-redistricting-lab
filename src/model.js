@@ -31,3 +31,12 @@ export function csvForPlan(plan, elections) {
   return [header, ...plan.districts.map(d => [d.id, d.population, d.components, ...d.votes.flatMap(v => [...v, voteShare(v) ?? '']), 'Census; NY LATFOR; DRA and original contributors; The New York Times / Benjamin J. Rosenblatt. DRA BY-SA + no-sale; NYT C-UDA noncommercial. https://github.com/kvngnsn/ny-redistricting-lab/blob/main/docs/SOURCES.md'])]
     .map(row => row.map(quote).join(',')).join('\r\n') + '\r\n';
 }
+
+export function marginFit(districts, election, statewideCounts, swing = 0) {
+  const target = margin(statewideCounts, swing);
+  const values = districts.map(d => margin(d.votes[election], swing)).filter(m => m !== null);
+  if (target === null || !values.length) return null;
+  const gaps = values.map(m => m - target);
+  return { target, min: Math.min(...values), max: Math.max(...values),
+    maxGap: Math.max(...gaps.map(Math.abs)), rmsGap: Math.sqrt(gaps.reduce((s,g)=>s+g*g,0)/gaps.length) };
+}

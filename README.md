@@ -2,24 +2,25 @@
 
 **[Open the interactive map →](https://kvngnsn.github.io/ny-redistricting-lab/)**
 
-An open-source redistricting experiment: 26 New York congressional districts, equal population, geographic contiguity with two disclosed island exceptions, and a Democratic sweep as the search objective.
+An open-source redistricting experiment: 26 New York congressional districts, equal population, geographic contiguity with two disclosed island exceptions, and searches for Democratic sweeps and uniform statewide margins.
 
-**Result:** the published 2024-focused map produces **26 Democratic leads out of 26** in the modeled 2024 presidential vote. Its weakest district is only **D +1.37 points**, compared with **D +12.68 statewide**. This is a constructed historical result, not 26 safe seats or a forecast.
+**Latest result:** the statewide-margin search produces **26 Democratic leads**, with modeled 2024 margins from **D+8.31 to D+17.53**. The target is **D+12.68**. The largest remaining gap is **4.84 percentage points**, about **90.3% smaller** than the original sweep's gap. Uniform margins were **not achieved**. [Equalization method and limitations](docs/EQUALIZATION.md).
 
-| Published plan | D leads, 2024 president | Weakest 2024 margin | D leads, 2022 governor | Districts D in every source election | Population range |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| 2024 sweep | 26 / 26 | D +1.37 | 14 / 26 | 14 / 26 | 1 person |
-| Historical stress search | 26 / 26 | D +0.70 | 15 / 26 | 15 / 26 | 1 person |
-| 2024 adopted reference | 19 / 26 | R +24.83 | 14 / 26 | 13 / 26 | 2 people |
+| Published plan | D leads, 2024 | Weakest 2024 | Strongest 2024 | D leads, 2022 governor | D in every source election | Population range |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Statewide margin search | 26 / 26 | D +8.31 | D +17.53 | 20 / 26 | 19 / 26 | 1 person |
+| 2024 sweep | 26 / 26 | D +1.37 | D +62.54 | 14 / 26 | 14 / 26 | 1 person |
+| Historical stress search | 26 / 26 | D +0.70 | D +39.10 | 15 / 26 | 15 / 26 | 1 person |
+| 2024 adopted map | 19 / 26 | R +24.83 | D +64.90 | 14 / 26 | 13 / 26 | 2 people |
 
-Both experimental maps have **23 districts at 776,971 residents** and **3 at 776,972**, with all 26 district cores connected. Two zero-population Liberty/Ellis Island blocks retain their official assignment. Water polygons count toward Census geographic contiguity; this is not a road-connectivity rule.
+All three experimental maps have **23 districts at 776,971 residents** and **3 at 776,972**, with all 26 district cores connected. Two zero-population Liberty/Ellis Island blocks retain their official assignment. Water polygons count toward Census geographic contiguity; this is not a road-connectivity rule.
 
 ## Explore
 
-- Switch among both experiments and the official reference.
+- Switch among three experiments and the official reference.
 - Compare **13 statewide contests spanning 2008–2024**.
 - Click districts for population, margins and election history.
-- Inspect **14,191** common historical voting units; explore a uniform vote-share swing.
+- Inspect **14,191** common historical voting units; compare gaps from statewide and explore a uniform vote-share swing.
 - Download district results, map geometry and all **288,819** Census-block assignments.
 - Open the public source credits, methodology and machine-readable validation.
 
@@ -36,7 +37,7 @@ The model includes **12,984** 2024 precinct features and **11.26 million** block
 | [Research bundle](research/) | Full numerical model, search records and replay checkpoints |
 | [Scripts](scripts/) | Download, prepare, search, balance, validate and export |
 | [Website source](src/) | Static MapLibre explorer; no backend or API key |
-| [Published data](public/data/) | Three maps, full assignments, summaries and validation |
+| [Published data](public/data/) | Four maps, full assignments, summaries and validation |
 
 ```sh
 npm ci
